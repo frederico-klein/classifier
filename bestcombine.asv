@@ -1,6 +1,6 @@
-function [maxedout,act,A, actions] = bestcombine(outcomes, method)
+function [maxedout,act,A, actions] = bestcombine(outcomes)
 %act = [];
-%method = 'winnertakesall'; % 'lastlayer'
+method = 'winnertakesall' %
 numgas = size(outcomes.b.b,3);
 %maxedout = zeros(numgas,1);
 matsize = size(outcomes.b.b,1);
@@ -38,15 +38,9 @@ for i =1:numgas
     end
 end
 act = [lact' cact'];
-switch method
-    case 'winnertakesall'
-        [maxa, ii ]= max(maxedout);
-    case 'lastlayer'
-        ii = 5;
-        maxa = maxedout(5);
-end
-disp(['using method to merge:' method ])
-disp(['layer with results to be used by after merge: ' num2str(ii)])
+if strcmp()
+[maxa, ii ]= max(maxedout);
+disp(['layer with best results after merge: ' num2str(ii)])
 disp(['maximum accuracy ' num2str(100*maxa) ' % occurs when we merge:' ])
 disp(actions(lact(ii)))
 disp(' with:' )
