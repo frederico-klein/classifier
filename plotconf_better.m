@@ -1,10 +1,14 @@
 function confmat = plotconf_better(mt,plotplot)
+warning('Do not use this function. this was done in a hurry and it is messy.')
+if size(mt,1)~=1
+    error('cannot deal well with multiply dimensions. What do you want me to do?')
+end
 try 
     evalin('base', 'crashedalready;');    
 catch
     assignin('base', 'crashedalready', false);
 end
-al = length(mt);
+al = size(mt,2);
 if isfield(mt(1).conffig, 'val')&&~isempty(mt(1).conffig.val)
     figset = cell(6*al,1);
     for i = 1:al
