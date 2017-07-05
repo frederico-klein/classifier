@@ -9,8 +9,8 @@ if nargin==1
     %%% creates labels:
     labx = cell(1,limx);
     laby = cell(1,limy);
-    labx(1:5) = {'A','B','C','D','E'};
-    laby(1:5) = {'A','B','C','D','E'};
+    labx(1:14) = {'A','B','C','D','E','F','G','H','I','J','K','L','M','N'};
+    laby(1:14) = labx;
 elseif nargin==2
     mat = varargin{1};
     limx = size(mat,2);
