@@ -37,6 +37,19 @@ if isstruct(varvar)
     else
         error('Unknown structure type')
     end
+elseif isa(varvar,'Simvar')
+    simvartrial = varvar;
+    clear varvar
+    combsize = [size(simvartrial(1).metrics(1, 1).val) size(simvartrial(1).metrics,2)];
+    combinedval = zeros(combsize);
+    for i=1:size(simvartrial,2)
+        for gaslayer = 1: size(simvartrial(1).metrics,2)
+            for worker =1:size(simvartrial(1).metrics,1)
+                combinedval(:,:,gaslayer) = simvartrial(i).metrics(worker, gaslayer).val + combinedval(:,:,gaslayer);
+            end
+        end
+    end
+    endaccsize = size(simvartrial(1).metrics,2);
 else
     error('Unknown input type')
 end

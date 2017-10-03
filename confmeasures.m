@@ -1,4 +1,13 @@
 function [mmsd, measures] = confmeasures(cm)
+%=======================================================
+% You probably want to run analyze_outcomes like, e. g.:
+%
+% > [~, outcomes.b.b] = analyze_outcomes(aaa);
+%
+% and then run this command 
+%
+% > confmeasures(outcomes.b)
+
 %%% wrapper for other types of input
 if isstruct(cm)
     %%%okay will hope I am measuring outcomes
@@ -8,6 +17,8 @@ if isstruct(cm)
                 measures(i,j) = cmeasures(cm(i).b(:,:,j));
             end
         end
+    else
+        error('Unexpected structure type!')
     end
 else
     for j=1:size(cm,3)

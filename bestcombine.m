@@ -7,7 +7,9 @@ matsize = size(outcomes.b.b,1);
 thisout = zeros(numgas,matsize,matsize);
 
 if ~isempty(outcomes.hash)
-    actions = {'brushing teeth','cooking (chopping)'	,'cooking (stirring)'	,'drinking water','opening pill container'	,'random','relaxing on couch','rinsing mouth with water'	,'still'	,'talking on couch'	,'talking on the phone'	,'wearing contact lenses'	,'working on computer'	,'writing on whiteboard'};
+    %actions = {'brushing teeth','cooking (chopping)'	,'cooking (stirring)'	,'drinking water','opening pill container'	,'random','relaxing on couch','rinsing mouth with water'	,'still'	,'talking on couch'	,'talking on the phone'	,'wearing contact lenses'	,'working on computer'	,'writing on whiteboard'};
+    actions = {'brushing teeth','cooking (chopping)'	,'cooking (stirring)'	,'drinking water','opening pill container'	,'relaxing on couch','rinsing mouth with water'	,'talking on couch'	,'talking on the phone'	,'wearing contact lenses'	,'working on computer'	,'writing on whiteboard'};
+
     %actions = num2cell(1:matsize);
 elseif isfield(outcomes.b, 'actions')
     actions = outcomes.b.actions;

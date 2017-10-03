@@ -1,5 +1,5 @@
 function confmat = plotconf_better(mt,plotplot)
-warning('Do not use this function. this was done in a hurry and it is messy.')
+%warning('Do not use this function. this was done in a hurry and it is messy.')
 if size(mt,1)~=1
     error('cannot deal well with multiply dimensions. What do you want me to do?')
 end
@@ -23,6 +23,8 @@ else
 end
 if plotplot
     plotconfusion(figset{:})
+    %plotconf_shaded(figset{:}) %%doesnt work, the arguments it receives
+    %are not the same. should make a wrapper to do this
 end
 confusions.a = zeros(size(figset{1},1), size(figset{1},1),size(mt,2));
 confusions.b = confusions.a;
