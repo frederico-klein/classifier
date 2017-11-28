@@ -9,14 +9,7 @@ function [mmsd, measures] = confmeasures(cm)
 % > confmeasures(outcomes.b)
 
 %%% wrapper for other types of input
-if isa(cm.trials,'Simvar')
-    tcm = maketensor_cm(cm.trials.metrics);
-    for i=1:size(tcm,3)
-        for j=1:size(tcm,4)
-            measures(i,j) = cmeasures(tcm(:,:,i,j));
-        end
-    end
-elseif isstruct(cm)
+if isstruct(cm)
     %%%okay will hope I am measuring outcomes
     if isfield(cm, 'b')
         for i=1:length(cm)
@@ -27,110 +20,55 @@ elseif isstruct(cm)
     else
         error('Unexpected structure type!')
     end
+elseif isa(cm,'Simvar')
+    tcm = maketensor_cm(cm.metrics);
+    for j=1:size(tcm,3)
+        measures(j) = cmeasures(tcm(:,:,j));
+    end
 else
     for j=1:size(cm,3)
         measures(j) = cmeasures(cm(:,:,j));
     end
 end
-labels = cm.datavar(1, 1).labels_names; %% actually this is kinda wrong, the information here is redundant and should not be set multiple times. and if it is different this should at least check for it and except it. 
-for i = 1:size(measures,2)
-    mmsd(i) = mmsdg(measures(:,i),labels);
-end
+mmsd = mmsdg(measures);
 end
 function tcm = maketensor_cm(at)
 %disp('Hello!')
-tcm = zeros([size(at(1).val),size(at,1),size(at,2)]);
-for i =1:size(at,1)
-    for j = 1:size(at,2)
-        tcm(:,:,i,j) = at(i,j).val;
-    end
+tcm = zeros([size(at(1).val),length(at)]);
+for i =1:length(at)
+    tcm(:,:,i) = at(i).val;
 end
 end
-function mmsd = mmsdg(measures,lab)
+function mmsd = mmsdg(measures)
 allfields = fieldnames(measures);
-mmsd = struct;
+mmsd(size(measures,2)) = struct;
 for i = 1:length(allfields)
     if ~isstruct(measures(1,1).(allfields{i}))
-        mmsd.(allfields{i}) = [];
-        %         for j = 1: size(measures,1)
-        %             vectvect(j) = getfield(measures,{j}, (allfields{i}),{1});
-        %         end
-        vectvect = [measures(:).(allfields{i})];
-        mmsd = setfield(mmsd, (allfields{i}),{1},mean(vectvect));
-        mmsd = setfield(mmsd, (allfields{i}),{2},std(vectvect));
-        mmsd = setfield(mmsd, (allfields{i}),{3},min(vectvect));
-        mmsd = setfield(mmsd, (allfields{i}),{4},max(vectvect));
-        mmsd.data.(allfields{i}) = vectvect;
+        for j =1:size(measures,2)
+            mmsd(j).(allfields{i}) = [];
+            mmsd(j) = setfield(mmsd(j), (allfields{i}),{1},mean([measures(:,j).(allfields{i})]));
+            mmsd(j) = setfield(mmsd(j), (allfields{i}),{2},max([measures(:,j).(allfields{i})]));
+            mmsd(j) = setfield(mmsd(j), (allfields{i}),{3},std([measures(:,j).(allfields{i})]));
+        end
     else
-        
-        for k = 1:length(getfield(measures(1),allfields{i}))
-            subfieldnames = fieldnames(getfield(measures(1),allfields{i},{k}));
-            for m = 1:length(subfieldnames) %this might break
-                for l = 1:size(measures,1)
-                    a(l) = getfield(getfield(measures(l),allfields{i},{k}),subfieldnames{m});
+        for j = 1:size(measures,2) %%% this is not debuggable. if it ever breaks, rewrite.
+            for k = 1:length(getfield(measures(1,1),allfields{i}))
+                subfieldnames = fieldnames(getfield(measures(1,j),allfields{i},{k}));
+                for m = 1:length(subfieldnames) %this might break
+                    for l = 1:size(measures,1)                                                                       
+                        a(l) = getfield(getfield(measures(l,j),allfields{i},{k}),subfieldnames{m});
+                    end
+                    mmsd(j).([allfields{i} num2str(k)]).(subfieldnames{m}) = [];
+                    mmsd(j).([allfields{i} num2str(k)]) = setfield(mmsd(j).([allfields{i} num2str(k)]),(subfieldnames{m}),{1},mean(a));   
+                    mmsd(j).([allfields{i} num2str(k)]) = setfield(mmsd(j).([allfields{i} num2str(k)]),(subfieldnames{m}),{2},max(a));   
+                    mmsd(j).([allfields{i} num2str(k)]) = setfield(mmsd(j).([allfields{i} num2str(k)]),(subfieldnames{m}),{3},std(a));   
                 end
-                %strrep(str,old,new)
-                currfieldname = strrep(lab{k},' ','_');%[allfields{i} num2str(k)];
-                currfieldname = erase(currfieldname,'(');
-                currfieldname = erase(currfieldname,')');
-                mmsd.(currfieldname).(subfieldnames{m}) = [];
-                mmsd.(currfieldname) = setfield(mmsd.(currfieldname),(subfieldnames{m}),{1},mean(a));
-                mmsd.(currfieldname) = setfield(mmsd.(currfieldname),(subfieldnames{m}),{2},std(a));
-                mmsd.(currfieldname) = setfield(mmsd.(currfieldname),(subfieldnames{m}),{3},min(a));
-                mmsd.(currfieldname) = setfield(mmsd.(currfieldname),(subfieldnames{m}),{4},max(a));
-                mmsd.(currfieldname).data.(subfieldnames{m}) = a;
             end
         end
     end
 end
 
 end
-% %%%%%
-% function mmsd = mmsdg(measures,lab)
-% allfields = fieldnames(measures);
-% mmsd(size(measures,1)) = struct;
-% for i = 1:length(allfields)
-%     if ~isstruct(measures(1,1).(allfields{i}))
-%         for j =1:size(measures,1)
-%             mmsd(j).(allfields{i}) = [];
-%             vectvect = getfield(measures(j,:), (allfields{i}));
-%             mmsd(j) = setfield(mmsd(j), (allfields{i}),{1},mean(vectvect));
-%             mmsd(j) = setfield(mmsd(j), (allfields{i}),{2},std(vectvect));
-%             mmsd(j) = setfield(mmsd(j), (allfields{i}),{3},min(vectvect));
-%             mmsd(j) = setfield(mmsd(j), (allfields{i}),{4},max(vectvect));
-%             mmsd(j).data.(allfields{i}) = [measures(j,:).(allfields{i})];
-%         end
-%     else
-%         for j = 1:size(measures,1) %%% this is not debuggable. if it ever breaks, rewrite.
-%             for k = 1:length(getfield(measures(1,1),allfields{i}))
-%                 subfieldnames = fieldnames(getfield(measures(1,j),allfields{i},{k}));
-%                 for m = 1:length(subfieldnames) %this might break
-%                     for l = 1:size(measures,2)                                                                       
-%                         a(l) = getfield(getfield(measures(j,l),allfields{i},{k}),subfieldnames{m});
-%                     end
-%                     %strrep(str,old,new)
-%                     currfieldname = strrep(lab{k},' ','_');%[allfields{i} num2str(k)]; 
-%                     currfieldname = erase(currfieldname,'(');
-%                     currfieldname = erase(currfieldname,')');
-%                     mmsd(j).(currfieldname).(subfieldnames{m}) = [];
-%                     mmsd(j).(currfieldname) = setfield(mmsd(j).(currfieldname),(subfieldnames{m}),{1},mean(a));   
-%                     mmsd(j).(currfieldname) = setfield(mmsd(j).(currfieldname),(subfieldnames{m}),{2},std(a));
-%                     mmsd(j).(currfieldname) = setfield(mmsd(j).(currfieldname),(subfieldnames{m}),{3},min(a));   
-%                     mmsd(j).(currfieldname) = setfield(mmsd(j).(currfieldname),(subfieldnames{m}),{4},max(a));
-%                     mmsd(j).(currfieldname).data.(subfieldnames{m}) = a;
-%                 end
-%             end
-%         end
-%     end
-% end
-% 
-% end
-%%%%%
-
-
-
-
-
 function measures = cmeasures(cm)
 %check if cm is valid
 l = size(cm,1);
@@ -140,7 +78,7 @@ end
 
 %initializes measures output
 measures = struct;
-measures.avgAccuracy = 0;
+measures.averageAccuracy = 0;
 measures.errorRate = 0;
 measures.precisionMi = 0;
 measures.recallMi = 0;
@@ -185,23 +123,20 @@ for i =1:l
     fpi = fpi1+fpi2;
     
     % average accuracy
-    measures.avgAccuracy = measures.avgAccuracy + (tpi+tni)/(tpi+fni+fpi+tni+realmin);
-    measures.errorRate = measures.errorRate + (fpi+fni)/(tpi+fni+fpi+tni+realmin);% 1- accuracy?
+    measures.averageAccuracy = measures.averageAccuracy + (tpi+tni)/(tpi+fni+fpi+tni);
+    measures.errorRate = measures.errorRate + (fpi+fni)/(tpi+fni+fpi+tni);% 1- accuracy?
     pmid = pmid + tpi; %
     pmin = pmin + tpi + fpi;
     rmin = rmin + tpi + fni;
-    measures.precisionM = measures.precisionM + tpi/(tpi+fpi+realmin);
-    measures.recallM = measures.recallM +tpi/(tpi+fni+realmin); % I am trying to avoid nans. I've checked and nans are perhaps supposed to be present, but they get carried away and make everything else a NaN as well. 
-    measures.peraction(i).accuracy = (tpi+tni)/(tpi+fni+fpi+tni+realmin);
-    measures.peraction(i).errorRate = (fpi+fni)/(tpi+fni+fpi+tni+realmin);
-    measures.peraction(i).precision = tpi/(tpi+fpi+realmin);
-    measures.peraction(i).recall = tpi/(tpi+fni+realmin);
-%     if tpi+fni==0
-%         error('this is not supposed to happen!')
-%     end
+    measures.precisionM = measures.precisionM + tpi/(tpi+fpi);
+    measures.recallM = measures.recallM +tpi/(tpi+fni);
+    measures.peraction(i).accuracy = (tpi+tni)/(tpi+fni+fpi+tni);
+    measures.peraction(i).errorRate = (fpi+fni)/(tpi+fni+fpi+tni);
+    measures.peraction(i).precision = tpi/(tpi+fpi);
+    measures.peraction(i).recall = tpi/(tpi+fni);
     measures.peraction(i).fscore = fscore(1,measures.peraction(i).precision,measures.peraction(i).recall);
 end
-measures.avgAccuracy = measures.avgAccuracy/l;
+measures.averageAccuracy = measures.averageAccuracy/l;
 measures.errorRate = measures.errorRate/l;
 measures.precisionM = measures.precisionM/l;
 measures.recallM = measures.recallM/l;
