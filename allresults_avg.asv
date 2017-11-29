@@ -53,7 +53,7 @@ while(1)
                 end
             end
                     for ik = 1:length(metrics)
-            aalr.(thisplace) = setfield(aalr.(thisplace),{1},(metrics{ik}),{k,:}, make4ms(aalr.(thisplace).data(k).(metrics{ik})));
+            aalr.(thisplace) = setfield(aalr.(thisplace),{1},(metrics),{ik}, make4ms(aalr.(thisplace).data(k).(metrics{ik})));
             %aalr.(thisplace).recall(k,:) = make4ms(aalr.(thisplace).data(k).recall);
                     end
         end
@@ -74,7 +74,7 @@ for i = 1:length(allplaces)
         for j = 1:size(aalr.(allplaces{i}).data,2)
             for ik = 1:length(metrics)
             aalr.data(j).(metrics{ik}) = cat(2,aalr.(allplaces{i}).data(j).precision,aalr.data(j).(metrics{ik}));
-            aalr = setfield(aalr,{1},(metrics{ik}),{j,:}, make4ms(aalr.data(j).precision);
+            aalr.precision(j,:) = make4ms(aalr.data(j).precision);
 
             end
         end
